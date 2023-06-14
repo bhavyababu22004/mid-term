@@ -1,0 +1,70 @@
+#Importing libraries
+import dht
+import ubinascii
+import time
+import sys
+import machine
+import network
+from machine import Pin
+
+#Pin definitions and initializations
+p0 = Pin(0, Pin.IN, Pin.PULL_UP)
+d=dht.DHT11(machine.Pin(0))
+
+p4 = Pin(4, Pin.IN, Pin.PULL_UP)
+d1=dht.DHT11(machine.Pin(4))
+
+def readDht():
+    d.measure()
+    return d.temperature()
+
+def collectData():
+    temp= readDht()
+    return temp
+
+ssid = 'xxxxxxxxxxxx'
+password = 'xxxxxxxxxxxxxxxx'
+
+def connect():
+    #Connect to WLAN
+    wlan = network.WLAN(network.STA_IF)
+    wlan.active(True)
+    wlan.connect(ssid, password)
+    print('connected')
+    while wlan.isconnected() == False:
+        print('Waiting for connection...')
+        time.sleep(1)
+    print(wlan.ifconfig())
+ 
+from umqtt.robust import MQTTClient
+
+SERVER = "34.125.178.149"
+CLIENT_ID = ubinascii.hexlify(machine.unique_id())
+
+topic = b"sensor_data\temperature"
+
+
+client = MQTTClient(CLIENT_ID,SERVER,keepalive =60)
+
+try:            
+    client.connect()
+except Exception as e:
+    print('could not connect to MQTT server {}{}'.format(type(e).__name__, e))
+    sys.exit()
+
+PUBLISH_PERIOD_IN_SEC = 20
+
+while True:  
+        temp = collectData()
+        payload = str(temp)
+        client.publish(topic,payload)
+        time.sleep(PUBLISH_PERIOD_IN_SEC)
+client.disconnect()
+wifi.disconnect()
+        
+
+
+
+
+
+
