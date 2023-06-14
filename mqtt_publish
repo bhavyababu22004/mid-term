@@ -1,0 +1,22 @@
+import paho.mqtt.client as mqtt
+global mqttclient;
+global broker;
+global port;
+
+import time
+
+broker = "0.0.0.0"
+port = 1883
+topic = "sensor_data/temperature"
+payload = "45"
+print('Connecting')
+client = mqtt.Client()
+print('Connecting')
+client.connect('34.125.178.149', 1883,60)
+
+while True:
+    print('Publishing')
+    client.publish(topic,payload)
+    time.sleep(20)
+
+client.disconnect()
